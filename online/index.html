@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>在吗复制器</title>
+    <script>
+        function copytxt() {
+            var txt, res, num, mx;
+            if (document.getElementById("txt1").checked == true) {
+                txt = "在吗";
+                mx = 500;
+            }
+            else if (document.getElementById("txt2").checked == true) {
+                txt = "在呢";
+                mx = 500;
+            }
+            else if (document.getElementById("txt3").checked == true) {
+                txt = "我在";
+                mx = 500;
+            }
+            else if (document.getElementById("txt4").checked == true) {
+                txt = "在";
+                mx = 1000;
+            }
+            else if (document.getElementById("txt5").checked == true) {
+                txt = "发生甚么逝了";
+                mx = 166;
+            }
+            else if (document.getElementById("txt6").checked == true) {
+                txt = "有人在吗";
+                mx = 250;
+            }
+            else if (document.getElementById("txt7").checked == true) {
+                txt = "在吗[大哭][大哭][大哭]";
+                mx = 90;
+            }
+            else if (document.getElementById("txt8").checked == true) {
+                txt = "我在，但是妹妹你别刷屏啊";
+                mx = 83;
+            }
+            else if (document.getElementById("txt9").checked == true) {
+                txt = "在[给心心]";
+                mx = 200;
+            }
+            else if (document.getElementById("txta").checked == true) {
+                txt = "我在[给心心]";
+                mx = 166;
+            }
+            else if (document.getElementById("txtb").checked == true) {
+                txt = "在吗[给心心]";
+                mx = 166;
+            }
+            else {
+                txt = "";
+                mx = 1000;
+            }
+            res = "";
+            num = Number(document.getElementById("num").value);
+            if (num > mx) {
+                num = mx;
+                document.getElementById("num").value = mx;
+            }
+            for (var i = 0; i < num; i++)
+                res = res + txt;
+            document.getElementById("res").value = res;
+        }
+    </script>
+    <style>
+        #panel {
+            /*margin: auto;
+            width: 500px;*/
+        }
+    </style>
+</head>
+<body>
+    <div id="panel">
+        <p><h1>在吗复制器</h1></p>
+        复制文本：
+        <br />
+        <input type="radio" id="txt1" name="txt" />在吗
+        <br />
+        <input type="radio" id="txt2" name="txt" checked="checked" />在呢
+        <br />
+        <input type="radio" id="txt3" name="txt" />我在
+        <br />
+        <input type="radio" id="txt4" name="txt" />在
+        <br />
+        <input type="radio" id="txt5" name="txt" />发生甚么逝了
+        <br />
+        <input type="radio" id="txt6" name="txt" />有人在吗
+        <br />
+        <input type="radio" id="txt7" name="txt" />在吗[大哭][大哭][大哭]
+        <br />
+        <input type="radio" id="txt8" name="txt" />我在，但是妹妹你别刷屏啊
+        <br />
+        <input type="radio" id="txt9" name="txt" />在[给心心]
+        <br />
+        <input type="radio" id="txta" name="txt" />我在[给心心]
+        <br />
+        <input type="radio" id="txtb" name="txt" />在吗[给心心]
+        <br />
+        <br />
+        复制数量：<input type="number" id="num" value="500" />
+        <br />
+        <br />
+        <button onclick="copytxt()">复制</button>
+        <br />
+        <br />
+        输出文本：<br />
+        <textarea id="res"></textarea>
+    </div>
+</body>
+</html>
