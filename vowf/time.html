@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虚拟与现实时间转换器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .conversion-sections {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .section {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .section:hover {
+            transform: translateY(-5px);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #ffcc00;
+            text-align: center;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input, button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+        }
+        
+        input {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        
+        button {
+            background: #ffcc00;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #ffd633;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .timeline {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            margin-top: 30px;
+        }
+        
+        .timeline-visual {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            position: relative;
+            height: 120px;
+        }
+        
+        .time-point {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 30%;
+        }
+        
+        .time-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .time-value {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .time-arrow {
+            position: absolute;
+            top: 50%;
+            left: 15%;
+            width: 70%;
+            height: 4px;
+            background: #ffcc00;
+            transform: translateY(-50%);
+        }
+        
+        .time-arrow::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: -8px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid #ffcc00;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+        
+        .ratio-info {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 1.1rem;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .conversion-sections {
+                flex-direction: column;
+            }
+            
+            .timeline-visual {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .time-point {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            .time-arrow {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>虚拟与现实时间转换器</h1>
+            <p class="description">
+                根据设定的时间基准和转换比率，在现实时间和虚拟时间之间进行精确转换。
+                </br>当前设定：1虚拟天 = 6现实小时（虚拟时间流逝速度是现实的4倍）。
+                </br><div class="result" id="now-result">等待转换...</div>
+            </p>
+        </header>
+        
+        <div class="conversion-sections">
+            <div class="section">
+                <h2>现实时间 → 虚拟时间</h2>
+                <div class="input-group">
+                    <label for="real-time">输入现实时间：</label>
+                    <input type="datetime-local" id="real-time" value="2025-09-05T03:00">
+                </div>
+                <button id="convert-to-virtual">转换为虚拟时间</button>
+                <div class="result" id="virtual-result">1707-10-06&nbsp;00:00:00</div>
+            </div>
+            
+            <div class="section">
+                <h2>虚拟时间 → 现实时间</h2>
+                <div class="input-group">
+                    <label for="virtual-time">输入虚拟时间：</label>
+                    <input type="datetime-local" id="virtual-time" value="1707-10-06T00:00">
+                </div>
+                <button id="convert-to-real">转换为现实时间</button>
+                <div class="result" id="real-result">2025-09-05&nbsp;03:00:00</div>
+            </div>
+        </div>
+        
+        <!--<div class="timeline">
+            <h2>时间线对比</h2>
+            <div class="timeline-visual">
+                <div class="time-point">
+                    <div class="time-label">现实基准</div>
+                    <div class="time-value">2025-09-05<br>03:00</div>
+                </div>
+                <div class="time-arrow"></div>
+                <div class="time-point">
+                    <div class="time-label">虚拟基准</div>
+                    <div class="time-value">1707-10-06<br>00:00</div>
+                </div>
+                <div class="time-arrow"></div>
+                <div class="time-point">
+                    <div class="time-label">当前时间</div>
+                    <div class="time-value" id="current-time">加载中...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="ratio-info">
+            <p>时间转换比率：1虚拟天 = 6现实小时 | 1现实小时 = 4虚拟小时</p>
+            <p>虚拟时间流逝速度是现实时间的4倍</p>
+        </div>--!>
+        
+        <footer>
+            <p>虚拟与现实时间转换器&nbsp;&nbsp;&copy;&nbsp;<font id="copyright">2025</font></p>
+        </footer>
+    </div>
+
+    <script>
+        // 基准时间定义
+        const REAL_BASE_TIME = new Date('2025-09-05T03:00:00');
+        const VIRTUAL_BASE_TIME = new Date('1707-10-06T00:00:00');
+        const TIME_RATIO = 4; // 虚拟时间流逝速度是现实的4倍
+
+        // 获取DOM元素
+        const realTimeInput = document.getElementById('real-time');
+        const virtualTimeInput = document.getElementById('virtual-time');
+        const convertToVirtualBtn = document.getElementById('convert-to-virtual');
+        const convertToRealBtn = document.getElementById('convert-to-real');
+        const virtualResult = document.getElementById('virtual-result');
+        const realResult = document.getElementById('real-result');
+        const currentTimeElement = document.getElementById('current-time');
+
+        // 初始化当前时间显示
+        function updateCurrentTime() {
+            const now = new Date();
+            //currentTimeElement.textContent = now.toLocaleDateString('zh-CN') + '\n' + now.toLocaleTimeString('zh-CN');
+            
+            // 同时更新当前虚拟时间
+            const nowYear = now.getFullYear();
+            document.getElementById('copyright').textContent = `${nowYear}`;
+            const virtualNow = convertRealToVirtual(now);
+            document.getElementById('now-result').textContent = `当前虚拟时间: ${formatVirtualDate(virtualNow)}`;
+        }
+
+        // 现实时间转虚拟时间
+        function convertRealToVirtual(realTime) {
+            const timeDiff = realTime - REAL_BASE_TIME; // 毫秒差
+            const virtualTimeDiff = timeDiff * TIME_RATIO; // 虚拟时间差
+            return new Date(VIRTUAL_BASE_TIME.getTime() + virtualTimeDiff);
+        }
+
+        // 虚拟时间转现实时间
+        function convertVirtualToReal(virtualTime) {
+            const virtualTimeDiff = virtualTime - VIRTUAL_BASE_TIME; // 虚拟毫秒差
+            const realTimeDiff = virtualTimeDiff / TIME_RATIO; // 现实时间差
+            return new Date(REAL_BASE_TIME.getTime() + realTimeDiff);
+        }
+
+        // 格式化虚拟日期（处理1700年代的日期）
+        function formatVirtualDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+
+        // 事件监听
+        convertToVirtualBtn.addEventListener('click', function() {
+            const realTime = new Date(realTimeInput.value);
+            const virtualTime = convertRealToVirtual(realTime);
+            virtualResult.textContent = formatVirtualDate(virtualTime);
+        });
+
+        convertToRealBtn.addEventListener('click', function() {
+            const virtualTime = new Date(virtualTimeInput.value);
+            const realTime = convertVirtualToReal(virtualTime);
+            realResult.textContent = realTime.toLocaleString('zh-CN');
+        });
+
+        // 初始化
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 250); // 每秒更新一次当前时间
+    </script>
+</body>
+</html>
