@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>虚拟与现实时间转换器</title>
+    <title>虚拟与现实时间转换器（支持分钟偏移时区）</title>
     <style>
         * {
             margin: 0;
@@ -11,19 +11,19 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            background: linear-gradient(135deg, #F7B2D8, #6DC2E9, #fdbb2d);
             color: #fff;
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-        
+
         header {
             text-align: center;
             margin-bottom: 40px;
@@ -32,27 +32,27 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
-        
+
         h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
-        
+
         .description {
             font-size: 1.1rem;
             max-width: 800px;
             margin: 0 auto;
             line-height: 1.6;
         }
-        
+
         .conversion-sections {
             display: flex;
             flex-wrap: wrap;
             gap: 30px;
             margin-bottom: 40px;
         }
-        
+
         .section {
             flex: 1;
             min-width: 300px;
@@ -63,53 +63,59 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             transition: transform 0.3s ease;
         }
-        
-        .section:hover {
-            transform: translateY(-5px);
-        }
-        
+
+            .section:hover {
+                transform: translateY(-5px);
+            }
+
         h2 {
             font-size: 1.8rem;
             margin-bottom: 20px;
             color: #ffcc00;
             text-align: center;
         }
-        
+
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
-        
+
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
         }
-        
-        input, button {
+
+        input, select, button {
             width: 100%;
             padding: 12px;
             border-radius: 8px;
             border: none;
             font-size: 1rem;
         }
-        
+
         input {
             background: rgba(255, 255, 255, 0.9);
             color: #333;
         }
-        
+
+        select {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
         button {
             background: #ffcc00;
             color: #333;
             font-weight: bold;
             cursor: pointer;
             transition: background 0.3s;
+            margin-top: 10px;
         }
-        
-        button:hover {
-            background: #ffd633;
-        }
-        
+
+            button:hover {
+                background: #ffd633;
+            }
+
         .result {
             margin-top: 20px;
             padding: 15px;
@@ -122,8 +128,17 @@
             align-items: center;
             justify-content: center;
         }
-        
-        .timeline {
+
+        .timezone-selection {
+            display: flex;
+            gap: 10px;
+        }
+
+            .timezone-selection select {
+                flex: 1;
+            }
+
+        .timezone-info {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 15px;
@@ -131,58 +146,33 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             margin-top: 30px;
         }
-        
-        .timeline-visual {
+
+        .timezone-display {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
             margin-top: 20px;
-            position: relative;
-            height: 120px;
         }
-        
-        .time-point {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+
+        .timezone-card {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
             text-align: center;
-            width: 30%;
         }
-        
-        .time-label {
+
+        .timezone-name {
             font-weight: bold;
             margin-bottom: 10px;
+            color: #ffcc00;
         }
-        
-        .time-value {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
+
+        .timezone-time {
+            font-size: 1.1rem;
         }
-        
-        .time-arrow {
-            position: absolute;
-            top: 50%;
-            left: 15%;
-            width: 70%;
-            height: 4px;
-            background: #ffcc00;
-            transform: translateY(-50%);
-        }
-        
-        .time-arrow::after {
-            content: '';
-            position: absolute;
-            right: -10px;
-            top: -8px;
-            width: 0;
-            height: 0;
-            border-left: 10px solid #ffcc00;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid transparent;
-        }
-        
+
         .ratio-info {
             text-align: center;
             margin-top: 30px;
@@ -191,7 +181,7 @@
             background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
         }
-        
+
         footer {
             text-align: center;
             margin-top: 40px;
@@ -199,24 +189,18 @@
             border-top: 1px solid rgba(255, 255, 255, 0.2);
             font-size: 0.9rem;
         }
-        
+
         @media (max-width: 768px) {
             .conversion-sections {
                 flex-direction: column;
             }
-            
-            .timeline-visual {
+
+            .timezone-display {
                 flex-direction: column;
-                height: auto;
             }
-            
-            .time-point {
-                width: 100%;
-                margin-bottom: 20px;
-            }
-            
-            .time-arrow {
-                display: none;
+
+            .timezone-selection {
+                flex-direction: column;
             }
         }
     </style>
@@ -226,130 +210,348 @@
         <header>
             <h1>虚拟与现实时间转换器</h1>
             <p class="description">
-                根据设定的时间基准和转换比率，在现实时间和虚拟时间之间进行精确转换。
-                </br>当前设定：1虚拟天 = 6现实小时（虚拟时间流逝速度是现实的4倍）。
-                </br><div class="result" id="now-result">等待转换...</div>
+                根据设定的时间基准和转换比率，在现实时间和虚拟时间之间进行精确转换。<br />
+                当前设定：1虚拟天 = 6现实小时（虚拟时间流逝速度是现实的4倍）。<br />
+                系统已自动检测您的现实时区：<span id="detected-timezone">检测中...</span><br />
+                <div class="timezone-info">
+                    <h2>现实与虚拟时间对比</h2>
+                    <div class="timezone-display">
+                        <div class="timezone-card">
+                            <div class="timezone-name">当前现实时间 (本地)</div>
+                            <div class="timezone-time" id="real-local-time">加载中...</div>
+                        </div>
+                        <div class="timezone-card">
+                            <div class="timezone-name">当前虚拟时间 (UTC&nbsp;<font id="vit_timea">+00:00</font>)</div>
+                            <div class="timezone-time" id="virtual-utc8-time">加载中...</div>
+                        </div>
+                    </div>
+                </div>
             </p>
         </header>
-        
+
         <div class="conversion-sections">
             <div class="section">
                 <h2>现实时间 → 虚拟时间</h2>
                 <div class="input-group">
-                    <label for="real-time">输入现实时间：</label>
-                    <input type="datetime-local" id="real-time" value="2025-09-05T03:00">
+                    <label for="real-time">输入现实时间（本地时间）：</label>
+                    <input type="datetime-local" id="real-time">
+                </div>
+                <div class="input-group">
+                    <label>选择虚拟时区：</label>
+                    <div class="timezone-selection">
+                        <select id="virtual-timezone-hours">
+                            <!-- 虚拟时区小时选项将通过JavaScript动态生成 -->
+                        </select>
+                        <select id="virtual-timezone-minutes">
+                            <option value="0">00分</option>
+                            <option value="15">15分</option>
+                            <option value="30">30分</option>
+                            <option value="45">45分</option>
+                        </select>
+                    </div>
                 </div>
                 <button id="convert-to-virtual">转换为虚拟时间</button>
-                <div class="result" id="virtual-result">1707-10-06&nbsp;00:00:00</div>
+                <div class="result" id="virtual-result">等待转换...</div>
             </div>
-            
+
             <div class="section">
                 <h2>虚拟时间 → 现实时间</h2>
                 <div class="input-group">
                     <label for="virtual-time">输入虚拟时间：</label>
-                    <input type="datetime-local" id="virtual-time" value="1707-10-06T00:00">
+                    <input type="datetime-local" id="virtual-time">
+                </div>
+                <div class="input-group">
+                    <label>选择虚拟时区：</label>
+                    <div class="timezone-selection">
+                        <select id="virtual-timezone-hours-reverse">
+                            <!-- 虚拟时区小时选项将通过JavaScript动态生成 -->
+                        </select>
+                        <select id="virtual-timezone-minutes-reverse">
+                            <option value="0">00分</option>
+                            <option value="15">15分</option>
+                            <option value="30">30分</option>
+                            <option value="45">45分</option>
+                        </select>
+                    </div>
                 </div>
                 <button id="convert-to-real">转换为现实时间</button>
-                <div class="result" id="real-result">2025-09-05&nbsp;03:00:00</div>
+                <div class="result" id="real-result">等待转换...</div>
             </div>
         </div>
-        
-        <!--<div class="timeline">
-            <h2>时间线对比</h2>
-            <div class="timeline-visual">
-                <div class="time-point">
-                    <div class="time-label">现实基准</div>
-                    <div class="time-value">2025-09-05<br>03:00</div>
-                </div>
-                <div class="time-arrow"></div>
-                <div class="time-point">
-                    <div class="time-label">虚拟基准</div>
-                    <div class="time-value">1707-10-06<br>00:00</div>
-                </div>
-                <div class="time-arrow"></div>
-                <div class="time-point">
-                    <div class="time-label">当前时间</div>
-                    <div class="time-value" id="current-time">加载中...</div>
-                </div>
-            </div>
-        </div>
-        
+
         <div class="ratio-info">
             <p>时间转换比率：1虚拟天 = 6现实小时 | 1现实小时 = 4虚拟小时</p>
             <p>虚拟时间流逝速度是现实时间的4倍</p>
-        </div>--!>
-        
+            <p>现实世界基准时间：2025-09-05 03:00 UTC+8</p>
+            <p>虚拟世界基准时间：1707-10-06 00:00 UTC+0</p>
+        </div>
+
         <footer>
-            <p>虚拟与现实时间转换器&nbsp;&nbsp;&copy;&nbsp;<font id="copyright">2025</font></p>
+            <p>虚拟与现实时间转换器&nbsp;&nbsp;&copy;&nbsp;<font id="copyright"></font></p>
         </footer>
     </div>
 
     <script>
         // 基准时间定义
-        const REAL_BASE_TIME = new Date('2025-09-05T03:00:00');
-        const VIRTUAL_BASE_TIME = new Date('1707-10-06T00:00:00');
+        const REAL_BASE_TIME = new Date('2025-09-05T03:00:00'); // UTC+8
+        const VIRTUAL_BASE_TIME = new Date('1707-10-06T00:00:00'); // UTC+0
         const TIME_RATIO = 4; // 虚拟时间流逝速度是现实的4倍
 
         // 获取DOM元素
         const realTimeInput = document.getElementById('real-time');
         const virtualTimeInput = document.getElementById('virtual-time');
+        const virtualTimezoneHoursSelect = document.getElementById('virtual-timezone-hours');
+        const virtualTimezoneMinutesSelect = document.getElementById('virtual-timezone-minutes');
+        const virtualTimezoneHoursReverseSelect = document.getElementById('virtual-timezone-hours-reverse');
+        const virtualTimezoneMinutesReverseSelect = document.getElementById('virtual-timezone-minutes-reverse');
         const convertToVirtualBtn = document.getElementById('convert-to-virtual');
         const convertToRealBtn = document.getElementById('convert-to-real');
         const virtualResult = document.getElementById('virtual-result');
         const realResult = document.getElementById('real-result');
-        const currentTimeElement = document.getElementById('current-time');
+        const realLocalTimeElement = document.getElementById('real-local-time');
+        const realUTC8TimeElement = document.getElementById('real-utc8-time');
+        const virtualUTC0TimeElement = document.getElementById('virtual-utc0-time');
+        const virtualUTC8TimeElement = document.getElementById('virtual-utc8-time');
+        const detectedTimezoneElement = document.getElementById('detected-timezone');
+
+        // 检测用户时区
+        function detectUserTimezone() {
+            try {
+                // 方法1: 使用Intl API获取时区名称
+                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                if (timezone) {
+                    return timezone;
+                }
+            } catch (e) {
+                console.log("Intl API not available");
+            }
+
+            // 方法2: 使用getTimezoneOffset计算UTC偏移量
+            const offsetMinutes = new Date().getTimezoneOffset();
+            const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
+            const offsetMins = Math.abs(offsetMinutes) % 60;
+            const sign = offsetMinutes <= 0 ? '+' : '-';
+
+            return `UTC${sign}${offsetHours.toString().padStart(2, '0')}:${offsetMins.toString().padStart(2, '0')}`;
+        }
+
+        // 获取用户时区偏移量（分钟）
+        function getUserTimezoneOffsetMinutes() {
+            return new Date().getTimezoneOffset();
+        }
+
+        // 生成虚拟世界时区小时选项
+        function generateVirtualTimezoneHoursOptions() {
+            // 虚拟时区范围：UTC-11到UTC+12
+            for (let i = -11; i <= 12; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                const sign = i >= 0 ? '+' : '';
+                option.textContent = `UTC${sign}${i}`;
+                if (i === 0) option.selected = true;
+                virtualTimezoneHoursSelect.appendChild(option);
+
+                const option2 = document.createElement('option');
+                option2.value = i;
+                option2.textContent = `UTC${sign}${i}`;
+                if (i === 0) option2.selected = true;
+                virtualTimezoneHoursReverseSelect.appendChild(option2);
+            }
+        }
+
+        // 获取虚拟时区偏移（分钟）
+        function getVirtualTimezoneOffsetMinutes(hoursSelect, minutesSelect) {
+            const hours = parseInt(hoursSelect.value);
+            const minutes = parseInt(minutesSelect.value);
+            return (hours * 60) + (hours >= 0 ? minutes : -minutes);
+        }
 
         // 初始化当前时间显示
         function updateCurrentTime() {
             const now = new Date();
-            //currentTimeElement.textContent = now.toLocaleDateString('zh-CN') + '\n' + now.toLocaleTimeString('zh-CN');
-            
-            // 同时更新当前虚拟时间
-            const nowYear = now.getFullYear();
-            document.getElementById('copyright').textContent = `${nowYear}`;
-            const virtualNow = convertRealToVirtual(now);
-            document.getElementById('now-result').textContent = `当前虚拟时间: ${formatVirtualDate(virtualNow)}`;
+            const userTimezoneOffsetMinutes = getUserTimezoneOffsetMinutes();
+            const userTimezoneOffsetHours = Math.floor(Math.abs(userTimezoneOffsetMinutes) / 60);
+            const userTimezoneOffsetMins = Math.abs(userTimezoneOffsetMinutes) % 60;
+            const sign = userTimezoneOffsetMinutes <= 0 ? '+' : '-';
+
+            // 显示UTC+8时间
+            const utc8Time = convertToUTC8(now, userTimezoneOffsetMinutes);
+
+            // 显示本地时间
+            realLocalTimeElement.textContent = formatDateTime(now, userTimezoneOffsetHours, userTimezoneOffsetMins, sign);
+
+            // 计算并显示虚拟时间
+
+            const virtualUTC8 = convertRealToVirtual(utc8Time, 8, 0);
+            virtualUTC8TimeElement.textContent = formatVirtualDateTime(virtualUTC8, 8, 0, '+');
+
+            document.getElementById('copyright').textContent = now.getFullYear();
+
+            //const virtualUTC0 = convertRealToVirtual(utc8Time, 0, 0);
+            //virtualUTC0TimeElement.textContent = formatVirtualDateTime(virtualUTC0, 0, 0, '+');
+
+            //realUTC8TimeElement.textContent = formatDateTime(utc8Time, 8, 0, '+');
+        }
+
+        // 将本地时间转换为UTC+8时间
+        function convertToUTC8(localTime, localTimezoneOffsetMinutes) {
+            // 计算本地时间与UTC+8的时差（分钟）
+            const offsetDiffMinutes = (8 * 60) - (-localTimezoneOffsetMinutes);
+            // 转换为UTC+8时间
+            return new Date(localTime.getTime() + offsetDiffMinutes * 60 * 1000);
+        }
+
+        // 将UTC+8时间转换为本地时间
+        function convertFromUTC8(utc8Time, targetTimezoneOffsetMinutes) {
+            // 计算UTC+8与目标时区的时差（分钟）
+            const offsetDiffMinutes = (8 * 60) - (-targetTimezoneOffsetMinutes);
+            // 转换为目标时区时间
+            return new Date(utc8Time.getTime() - offsetDiffMinutes * 60 * 1000);
         }
 
         // 现实时间转虚拟时间
-        function convertRealToVirtual(realTime) {
-            const timeDiff = realTime - REAL_BASE_TIME; // 毫秒差
+        function convertRealToVirtual(realTimeUTC8, virtualTimezoneHours, virtualTimezoneMinutes) {
+            const timeDiff = realTimeUTC8 - REAL_BASE_TIME; // 毫秒差
             const virtualTimeDiff = timeDiff * TIME_RATIO; // 虚拟时间差
-            return new Date(VIRTUAL_BASE_TIME.getTime() + virtualTimeDiff);
+
+            // 计算虚拟UTC+0时间
+            let virtualUTC0 = new Date(VIRTUAL_BASE_TIME.getTime() + virtualTimeDiff);
+
+            // 根据虚拟时区偏移调整
+            const virtualTimezoneOffsetMinutes = (virtualTimezoneHours * 60) + (virtualTimezoneHours >= 0 ? virtualTimezoneMinutes : -virtualTimezoneMinutes);
+            virtualUTC0 = new Date(virtualUTC0.getTime() + virtualTimezoneOffsetMinutes * 60 * 1000);
+
+            return virtualUTC0;
         }
 
         // 虚拟时间转现实时间
-        function convertVirtualToReal(virtualTime) {
-            const virtualTimeDiff = virtualTime - VIRTUAL_BASE_TIME; // 虚拟毫秒差
+        function convertVirtualToReal(virtualTime, virtualTimezoneHours, virtualTimezoneMinutes) {
+            // 将虚拟时间转换为虚拟UTC+0时间
+            const virtualTimezoneOffsetMinutes = (virtualTimezoneHours * 60) + virtualTimezoneMinutes;
+            let virtualUTC0 = new Date(virtualTime.getTime() - virtualTimezoneOffsetMinutes * 60 * 1000);
+
+            const virtualTimeDiff = virtualUTC0 - VIRTUAL_BASE_TIME; // 虚拟毫秒差
             const realTimeDiff = virtualTimeDiff / TIME_RATIO; // 现实时间差
-            return new Date(REAL_BASE_TIME.getTime() + realTimeDiff);
+            // 计算现实UTC+8时间
+            const realUTC8 = new Date(REAL_BASE_TIME.getTime() + realTimeDiff);
+            //alert(realTimeDiff);
+            // 转换为用户本地时间
+            const userTimezoneOffsetMinutes = getUserTimezoneOffsetMinutes();
+            return convertFromUTC8(realUTC8, userTimezoneOffsetMinutes);
         }
 
-        // 格式化虚拟日期（处理1700年代的日期）
-        function formatVirtualDate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            const seconds = String(date.getSeconds()).padStart(2, '0');
-            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        // 格式化现实日期时间
+        function formatDateTime(date, hours, minutes, sign) {
+            const adjustedDate = new Date(date.getTime());
+            const year = adjustedDate.getFullYear();
+            const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+            const day = String(adjustedDate.getDate()).padStart(2, '0');
+            const hour = String(adjustedDate.getHours()).padStart(2, '0');
+            const minute = String(adjustedDate.getMinutes()).padStart(2, '0');
+            const second = String(adjustedDate.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}:${second} (UTC${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')})`;
+        }
+
+        // 格式化虚拟日期时间
+        function formatVirtualDateTime(date, hours, minutes, sign) {
+            const year = date.getUTCFullYear();
+            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(date.getUTCDate()).padStart(2, '0');
+            const hour = String(date.getUTCHours()).padStart(2, '0');
+            const minute = String(date.getUTCMinutes()).padStart(2, '0');
+            const second = String(date.getUTCSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}:${second} (UTC${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')})`;
+        }
+
+        function lToR() {
+            virtualTimezoneHoursReverseSelect.value = virtualTimezoneHoursSelect.value;
+            virtualTimezoneMinutesReverseSelect.value = virtualTimezoneMinutesSelect.value;
+            const virtualTimezoneHours = parseInt(virtualTimezoneHoursSelect.value);
+            const virtualTimezoneMinutes = parseInt(virtualTimezoneMinutesSelect.value);
+            const sign = virtualTimezoneHours >= 0 ? '+' : '-';
+            const hours = Math.abs(virtualTimezoneHours);
+            const minutes = virtualTimezoneMinutes;
+            document.getElementById('vit_timea').textContent = `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        function rToL() {
+            virtualTimezoneHoursSelect.value = virtualTimezoneHoursReverseSelect.value;
+            virtualTimezoneMinutesSelect.value = virtualTimezoneMinutesReverseSelect.value;
+            const virtualTimezoneHours = parseInt(virtualTimezoneHoursSelect.value);
+            const virtualTimezoneMinutes = parseInt(virtualTimezoneMinutesSelect.value);
+            const sign = virtualTimezoneHours >= 0 ? '+' : '-';
+            const hours = Math.abs(virtualTimezoneHours);
+            const minutes = virtualTimezoneMinutes;
+            document.getElementById('vit_timea').textContent = `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         }
 
         // 事件监听
-        convertToVirtualBtn.addEventListener('click', function() {
+        convertToVirtualBtn.addEventListener('click', function () {
             const realTime = new Date(realTimeInput.value);
-            const virtualTime = convertRealToVirtual(realTime);
-            virtualResult.textContent = formatVirtualDate(virtualTime);
+            const virtualTimezoneHours = parseInt(virtualTimezoneHoursSelect.value);
+            const virtualTimezoneMinutes = parseInt(virtualTimezoneMinutesSelect.value);
+
+            // 将输入的现实时间转换为UTC+8
+            const userTimezoneOffsetMinutes = getUserTimezoneOffsetMinutes();
+            const realTimeUTC8 = convertToUTC8(realTime, userTimezoneOffsetMinutes);
+
+            // 转换为虚拟时间
+            const virtualTime = convertRealToVirtual(realTimeUTC8, virtualTimezoneHours, virtualTimezoneMinutes);
+
+            const sign = virtualTimezoneHours >= 0 ? '+' : '-';
+            virtualResult.textContent = formatVirtualDateTime(
+                virtualTime,
+                Math.abs(virtualTimezoneHours),
+                virtualTimezoneMinutes,
+                sign
+            );
         });
 
-        convertToRealBtn.addEventListener('click', function() {
+        convertToRealBtn.addEventListener('click', function () {
             const virtualTime = new Date(virtualTimeInput.value);
-            const realTime = convertVirtualToReal(virtualTime);
-            realResult.textContent = realTime.toLocaleString('zh-CN');
+            const virtualTimezoneHours = parseInt(virtualTimezoneHoursReverseSelect.value);
+            const virtualTimezoneMinutes = parseInt(virtualTimezoneMinutesReverseSelect.value);
+
+            // 转换为现实时间
+            const realTime = convertVirtualToReal(virtualTime, virtualTimezoneHours, virtualTimezoneMinutes);
+            const userTimezoneOffsetMinutes = getUserTimezoneOffsetMinutes();
+            const userTimezoneOffsetHours = Math.floor(Math.abs(userTimezoneOffsetMinutes) / 60);
+            const userTimezoneOffsetMins = Math.abs(userTimezoneOffsetMinutes) % 60;
+            const sign = userTimezoneOffsetMinutes <= 0 ? '+' : '-';
+
+            realResult.textContent = formatDateTime(
+                realTime,
+                userTimezoneOffsetHours,
+                userTimezoneOffsetMins,
+                sign
+            );
         });
+
+        virtualTimezoneHoursSelect.addEventListener('change', lToR);
+        virtualTimezoneMinutesSelect.addEventListener('change', lToR);
+        virtualTimezoneHoursReverseSelect.addEventListener('change', rToL);
+        virtualTimezoneMinutesReverseSelect.addEventListener('change', rToL);
 
         // 初始化
+        generateVirtualTimezoneHoursOptions();
+
+        // 设置默认时间值
+        const now = new Date();
+        realTimeInput.value = now.toISOString().slice(0, 16);
+
+        // 计算当前虚拟时间
+        const userTimezoneOffsetMinutes = getUserTimezoneOffsetMinutes();
+        const nowUTC8 = convertToUTC8(now, userTimezoneOffsetMinutes);
+        const virtualNow = convertRealToVirtual(nowUTC8, 0, 0);
+        virtualTimeInput.value = virtualNow.toISOString().slice(0, 16);
+
+        // 显示检测到的时区
+        const detectedTimezone = detectUserTimezone();
+        detectedTimezoneElement.textContent = detectedTimezone;
+
+        convertToVirtualBtn.click();
+        convertToRealBtn.click();
+
         updateCurrentTime();
         setInterval(updateCurrentTime, 250); // 每秒更新一次当前时间
     </script>
