@@ -234,7 +234,7 @@
                 <h2>现实时间 → 虚拟时间</h2>
                 <div class="input-group">
                     <label for="real-time">输入现实时间（本地时间）：</label>
-                    <input type="datetime-local" id="real-time">
+                    <input type="datetime-local" value="2025-09-05 03:00" id="real-time">
                 </div>
                 <div class="input-group">
                     <label>选择虚拟时区：</label>
@@ -258,7 +258,7 @@
                 <h2>虚拟时间 → 现实时间</h2>
                 <div class="input-group">
                     <label for="virtual-time">输入虚拟时间：</label>
-                    <input type="datetime-local" id="virtual-time">
+                    <input type="datetime-local" value="1707-10-06 00:00" id="virtual-time">
                 </div>
                 <div class="input-group">
                     <label>选择虚拟时区：</label>
@@ -363,7 +363,7 @@
         function getVirtualTimezoneOffsetMinutes(hoursSelect, minutesSelect) {
             const hours = parseInt(hoursSelect.value);
             const minutes = parseInt(minutesSelect.value);
-            return (hours * 60) + (hours >= 0 ? minutes : -minutes);
+            return (hours * 60) + (hours >= 0 ? minutes : minutes);
         }
 
         // 初始化当前时间显示
@@ -373,6 +373,8 @@
             const userTimezoneOffsetHours = Math.floor(Math.abs(userTimezoneOffsetMinutes) / 60);
             const userTimezoneOffsetMins = Math.abs(userTimezoneOffsetMinutes) % 60;
             const sign = userTimezoneOffsetMinutes <= 0 ? '+' : '-';
+            const virtualTimezoneHours = parseInt(virtualTimezoneHoursSelect.value);
+            const virtualTimezoneMinutes = parseInt(virtualTimezoneMinutesSelect.value);
 
             // 显示UTC+8时间
             const utc8Time = convertToUTC8(now, userTimezoneOffsetMinutes);
@@ -382,8 +384,8 @@
 
             // 计算并显示虚拟时间
 
-            const virtualUTC8 = convertRealToVirtual(utc8Time, 8, 0);
-            virtualUTC8TimeElement.textContent = formatVirtualDateTime(virtualUTC8, 8, 0, '+');
+            const virtualUTC8 = convertRealToVirtual(utc8Time, virtualTimezoneHours, virtualTimezoneMinutes);
+            virtualUTC8TimeElement.textContent = formatVirtualDateTime(virtualUTC8, Math.abs(virtualTimezoneHours), virtualTimezoneMinutes, (virtualTimezoneHours >= 0 ? '+' : '-'));
 
             document.getElementById('copyright').textContent = now.getFullYear();
 
@@ -405,6 +407,7 @@
         function convertFromUTC8(utc8Time, targetTimezoneOffsetMinutes) {
             // 计算UTC+8与目标时区的时差（分钟）
             const offsetDiffMinutes = (8 * 60) - (-targetTimezoneOffsetMinutes);
+            //alert(formatDateTime(utc8Time, 8,0,'+'));
             // 转换为目标时区时间
             return new Date(utc8Time.getTime() - offsetDiffMinutes * 60 * 1000);
         }
@@ -416,12 +419,13 @@
 
             // 计算虚拟UTC+0时间
             let virtualUTC0 = new Date(VIRTUAL_BASE_TIME.getTime() + virtualTimeDiff);
-
+            virtualUTC0 = new Date(virtualUTC0.getTime() + 0 + (virtualUTC0.getFullYear() <= 1900 ? 343000 : 0));
+            //alert(formatVirtualDateTime(realTimeUTC8, 0, 0, '+'))
             // 根据虚拟时区偏移调整
-            const virtualTimezoneOffsetMinutes = (virtualTimezoneHours * 60) + (virtualTimezoneHours >= 0 ? virtualTimezoneMinutes : -virtualTimezoneMinutes);
+            const virtualTimezoneOffsetMinutes = (virtualTimezoneHours * 60) + virtualTimezoneHours;
             virtualUTC0 = new Date(virtualUTC0.getTime() + virtualTimezoneOffsetMinutes * 60 * 1000);
 
-            return virtualUTC0;
+            return new Date(virtualUTC0.getTime() - getUserTimezoneOffsetMinutes()*60000);
         }
 
         // 虚拟时间转现实时间
@@ -494,7 +498,7 @@
             // 将输入的现实时间转换为UTC+8
             const userTimezoneOffsetMinutes = getUserTimezoneOffsetMinutes();
             const realTimeUTC8 = convertToUTC8(realTime, userTimezoneOffsetMinutes);
-
+            //alert(userTimezoneOffsetMinutes);
             // 转换为虚拟时间
             const virtualTime = convertRealToVirtual(realTimeUTC8, virtualTimezoneHours, virtualTimezoneMinutes);
 
@@ -537,13 +541,13 @@
 
         // 设置默认时间值
         const now = new Date();
-        realTimeInput.value = now.toISOString().slice(0, 16);
+        //realTimeInput.value = now.toISOString().slice(0, 16);
 
         // 计算当前虚拟时间
         const userTimezoneOffsetMinutes = getUserTimezoneOffsetMinutes();
         const nowUTC8 = convertToUTC8(now, userTimezoneOffsetMinutes);
         const virtualNow = convertRealToVirtual(nowUTC8, 0, 0);
-        virtualTimeInput.value = virtualNow.toISOString().slice(0, 16);
+        //virtualTimeInput.value = virtualNow.toISOString().slice(0, 16);
 
         // 显示检测到的时区
         const detectedTimezone = detectUserTimezone();
