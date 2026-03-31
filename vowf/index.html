@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>虚拟世界时间换算器 | 虚拟时区支持 UTC-11~+12</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #0a0f1e 0%, #0c1222 100%);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(18, 25, 45, 0.85);
+            backdrop-filter: blur(4px);
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(88, 130, 255, 0.15);
+            overflow: hidden;
+            padding: 1.5rem 2rem 2rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem 0;
+            background: linear-gradient(135deg, #E6F7FF, #9DC8FF);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .sub {
+            color: #8e9bbe;
+            border-left: 3px solid #3e6bdb;
+            padding-left: 12px;
+            margin: 8px 0 20px 0;
+            font-size: 0.85rem;
+        }
+
+        /* 实时时钟卡片 */
+        .live-clock {
+            background: #0a1022;
+            border-radius: 1.5rem;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border: 1px solid #2a355a;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .live-item {
+            flex: 1;
+            text-align: center;
+            min-width: 200px;
+        }
+        .live-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7e8bb8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .live-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #eef5ff;
+            margin-top: 5px;
+            word-break: break-word;
+        }
+        .live-note {
+            font-size: 0.65rem;
+            color: #5c6f97;
+            margin-top: 4px;
+        }
+        .timezone-select {
+            background: #010510;
+            border: 1px solid #2c3c66;
+            border-radius: 30px;
+            padding: 4px 12px;
+            color: white;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-family: monospace;
+        }
+
+        /* 选项卡 */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #2a3457;
+            padding-bottom: 8px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #8e9bbe;
+            cursor: pointer;
+            border-radius: 40px;
+            transition: all 0.2s;
+            box-shadow: none;
+            flex: 0 1 auto;
+        }
+        .tab-btn.active {
+            background: #2f54eb;
+            color: white;
+            box-shadow: 0 2px 8px rgba(47, 84, 235, 0.3);
+        }
+        .tab-btn:not(.active):hover {
+            background: #1f2a46;
+            color: #cddcff;
+        }
+        .tab-pane {
+            display: none;
+            animation: fade 0.2s ease;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(5px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        .converter-box {
+            background: #070c1a;
+            border-radius: 1.5rem;
+            padding: 1.4rem 1.6rem;
+            border: 1px solid #2a3457;
+        }
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        .input-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            color: #c9deff;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+        .input-group input {
+            width: 100%;
+            background: #010510;
+            border: 1px solid #2c3c66;
+            padding: 12px 16px;
+            border-radius: 36px;
+            color: white;
+            font-size: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .input-group .timezone-select {
+            margin-left: 8px;
+            font-size: 0.85rem;
+            padding: 6px 12px;
+        }
+        .button-group {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin: 20px 0 12px;
+        }
+        button {
+            background: #1f2a46;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            color: #e0edff;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            flex: 1;
+            min-width: 110px;
+        }
+        button.primary {
+            background: #2f54eb;
+            color: white;
+            box-shadow: 0 2px 8px rgba(47, 84, 235, 0.3);
+        }
+        button.primary:hover {
+            background: #3c6eff;
+            transform: translateY(-1px);
+        }
+        .result-area {
+            background: #050a15;
+            border-radius: 1.4rem;
+            padding: 16px 20px;
+            margin-top: 20px;
+            border-left: 4px solid #3e6bdb;
+        }
+        .result-line {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin: 8px 0;
+        }
+        .result-label {
+            font-weight: 500;
+            color: #8ca3d9;
+        }
+        .result-value {
+            font-family: monospace;
+            font-weight: 600;
+            color: #f0f6ff;
+            word-break: break-word;
+            text-align: right;
+        }
+        .error {
+            color: #ffae9e;
+            background: #3a1e1e80;
+            border-radius: 30px;
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+        .info-note {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #5c6f97;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #1f2942;
+        }
+        hr {
+            border-color: #1f2a46;
+            margin: 12px 0;
+        }
+        @media (max-width: 600px) {
+            .card { padding: 1.2rem; }
+            .live-clock { flex-direction: column; align-items: stretch; text-align: center; }
+            .result-line { flex-direction: column; gap: 4px; }
+            .result-value { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>⏳ 世界树 · 时间沙漏</h1>
+    <div class="sub">动态流速 + 昼夜停滞 | 虚拟时区支持 UTC-11 ~ UTC+12</div>
+
+    <!-- 实时时钟区域（虚拟时区选择器） -->
+    <div class="live-clock">
+        <div class="live-item">
+            <div class="live-label">🌍 当前现实时间 (本地时区)</div>
+            <div class="live-time" id="liveRealFormatted">—</div>
+            <div class="live-note">跟随系统时区 · 毫秒精度</div>
+        </div>
+        <div class="live-item">
+            <div class="live-label">
+                ✨ 虚拟世界时间
+                <select id="virtualTzSelect" class="timezone-select">
+                    <!-- UTC-11 到 UTC+12 共24个选项，动态生成 -->
+                </select>
+            </div>
+            <div class="live-time" id="liveVirtual">—</div>
+            <div class="live-note">基于所选时区显示 · 内部 UTC+0</div>
+        </div>
+    </div>
+
+    <!-- 选项卡 -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="tab1">➡ 现实 → 虚拟</button>
+        <button class="tab-btn" data-tab="tab2">🔄 虚拟 → 现实</button>
+    </div>
+
+    <!-- 面板1: 现实转虚拟 -->
+    <div id="tab1" class="tab-pane active">
+        <div class="converter-box">
+            <div class="input-group">
+                <label>📅 现实时间 (UTC+8 输入)</label>
+                <input type="datetime-local" id="realInputTab1" step="1">
+            </div>
+            <div class="button-group">
+                <button id="toVirtualBtn" class="primary">换算为虚拟时间</button>
+                <button id="nowFillBtn">📡 填充当前时间</button>
+            </div>
+            <div id="errorTab1" class="error" style="display: none;"></div>
+            <div class="result-area">
+                <div class="result-line">
+                    <span class="result-label">现实时刻 (本地时区)</span>
+                    <span class="result-value" id="displayRealTab1">—</span>
+                </div>
+                <div class="result-line">
+                    <span class="result-label">虚拟世界时刻 (所选虚拟时区)</span>
+                    <span class="result-value" id="displayVirtualTab1">—</span>
+                </div>
+                <div class="result-line">
+                    <span class="result-label">⚙️ 当前规则</span>
+                    <span class="result-value" id="ruleStatusTab1">—</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 面板2: 虚拟转现实 -->
+    <div id="tab2" class="tab-pane">
+        <div class="converter-box">
+            <div class="input-group">
+                <label>✨ 虚拟时间 (所选虚拟时区)
+                    <select id="virtualInputTz" class="timezone-select">
+                        <!-- 动态生成相同选项 -->
+                    </select>
+                </label>
+                <input type="datetime-local" id="virtualInputTab2" step="1">
+            </div>
+            <div class="button-group">
+                <button id="toRealBtn" class="primary">换算为现实时间</button>
+                <button id="exampleBtn">📋 示例时间</button>
+            </div>
+            <div id="errorTab2" class="error" style="display: none;"></div>
+            <div class="result-area">
+                <div class="result-line">
+                    <span class="result-label">虚拟时刻 (所选虚拟时区)</span>
+                    <span class="result-value" id="displayVirtualTab2">—</span>
+                </div>
+                <div class="result-line">
+                    <span class="result-label">现实时刻 (本地时区)</span>
+                    <span class="result-value" id="displayRealTab2">—</span>
+                </div>
+                <div class="result-line">
+                    <span class="result-label">⚙️ 对应规则</span>
+                    <span class="result-value" id="ruleStatusTab2">—</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-note">
+        ※ 基准锚点：现实 2025/9/5 03:00 (UTC+8) = 虚拟 1707/10/6 00:00 (UTC+0)<br>
+        ※ 规则：2026/4/1 03:00前 1:4，当日03:00~06:00暂停，之后1:12且每日00:00~06:00暂停。<br>
+        ※ 支持基准时间之前的换算（按1:4向前延伸）。反向换算自动定位到暂停区间的起始时刻。<br>
+        ※ 现实时间输入始终视为 UTC+8，显示自动转为本地时区；虚拟时区仅影响显示与输入，内部计算基于 UTC+0。
+    </div>
+</div>
+
+<script>
+    // ======================= 常量 & 核心规则 =======================
+    const BASE_REAL_STR = "2025-09-05T03:00:00+08:00";
+    const BASE_VIRTUAL_STR = "1707-10-06T00:00:00+00:00";
+    const PHASE1_END_STR = "2026-04-01T03:00:00+08:00";
+    const PAUSE_START_STR = "2026-04-01T03:00:00+08:00";
+    const PAUSE_END_STR = "2026-04-01T06:00:00+08:00";
+    const DAILY_PAUSE_START_DATE = "2026-04-02T00:00:00+08:00";
+
+    const RATE_PHASE1 = 4;
+    const RATE_PHASE2 = 12;
+
+    const baseRealTs = new Date(BASE_REAL_STR).getTime();
+    const baseVirtualTs = new Date(BASE_VIRTUAL_STR).getTime();
+    const phase1EndTs = new Date(PHASE1_END_STR).getTime();
+    const pauseStartTs = new Date(PAUSE_START_STR).getTime();
+    const pauseEndTs = new Date(PAUSE_END_STR).getTime();
+    const dailyPauseStartBoundaryTs = new Date(DAILY_PAUSE_START_DATE).getTime();
+
+    // 辅助函数
+    function getStartOfDayUTC8(ts) {
+        const offset = 8 * 3600000;
+        const localDate = new Date(ts + offset);
+        localDate.setUTCHours(0, 0, 0, 0);
+        return localDate.getTime() - offset;
+    }
+
+    function isInDailyPause(realTs) {
+        if (realTs < dailyPauseStartBoundaryTs) return false;
+        const offset = 8 * 3600000;
+        const hour = new Date(realTs + offset).getUTCHours();
+        return hour >= 0 && hour < 6;
+    }
+
+    function isInSpecialPause(realTs) {
+        return realTs >= pauseStartTs && realTs < pauseEndTs;
+    }
+
+    function getTotalDailyPauseOverlap(startTs, endTs) {
+        if (startTs >= endTs) return 0;
+        let total = 0;
+        let dayStart = getStartOfDayUTC8(startTs);
+        const pauseDur = 6 * 3600000;
+        let guard = 0;
+        while (dayStart < endTs && guard < 200000) {
+            guard++;
+            const pStart = dayStart;
+            const pEnd = dayStart + pauseDur;
+            if (dayStart >= dailyPauseStartBoundaryTs) {
+                const overlapStart = Math.max(pStart, startTs);
+                const overlapEnd = Math.min(pEnd, endTs);
+                if (overlapStart < overlapEnd) total += (overlapEnd - overlapStart);
+            }
+            dayStart += 86400000;
+        }
+        return total;
+    }
+
+    function getEffectiveDurationAfterPauseEnd(realTargetTs) {
+        if (realTargetTs <= pauseEndTs) return 0;
+        const totalInterval = realTargetTs - pauseEndTs;
+        const totalPause = getTotalDailyPauseOverlap(pauseEndTs, realTargetTs);
+        return Math.max(0, totalInterval - totalPause);
+    }
+
+    // 正向换算
+    function realToVirtual(realTimestamp) {
+        if (realTimestamp <= phase1EndTs) {
+            const deltaReal = realTimestamp - baseRealTs;
+            const deltaVirtual = deltaReal * RATE_PHASE1;
+            return baseVirtualTs + deltaVirtual;
+        }
+        if (realTimestamp >= pauseStartTs && realTimestamp < pauseEndTs) {
+            const deltaPhase1 = (phase1EndTs - baseRealTs) * RATE_PHASE1;
+            return baseVirtualTs + deltaPhase1;
+        }
+        const phase1FullDelta = (phase1EndTs - baseRealTs) * RATE_PHASE1;
+        let virtual = baseVirtualTs + phase1FullDelta;
+        const effective = getEffectiveDurationAfterPauseEnd(realTimestamp);
+        virtual += effective * RATE_PHASE2;
+        return virtual;
+    }
+
+    function getRuleDescription(realTs) {
+        if (realTs < phase1EndTs) return "⚡ 1:4 (无暂停)";
+        if (isInSpecialPause(realTs)) return "⏸️ 特殊暂停 (4/1 03:00~06:00)";
+        if (realTs >= pauseEndTs && isInDailyPause(realTs)) return "🌙 每日暂停 (00:00~06:00)";
+        if (realTs >= pauseEndTs) return "🌀 1:12 加速";
+        return "未知";
+    }
+
+    // 反向换算
+    function virtualToReal(virtualTs) {
+        const phase1EndVirtual = baseVirtualTs + (phase1EndTs - baseRealTs) * RATE_PHASE1;
+        if (virtualTs <= phase1EndVirtual) {
+            const deltaVirtual = virtualTs - baseVirtualTs;
+            const deltaReal = deltaVirtual / RATE_PHASE1;
+            let realTs = baseRealTs + deltaReal;
+            if (realTs > phase1EndTs) realTs = phase1EndTs;
+            return realTs;
+        }
+        if (virtualTs === phase1EndVirtual) {
+            return pauseStartTs;
+        }
+        let low = pauseEndTs;
+        let high = pauseEndTs + (virtualTs - phase1EndVirtual) / RATE_PHASE2 * 3 + 365 * 86400000;
+        let iter = 0;
+        while (iter < 60 && realToVirtual(high) < virtualTs) {
+            high = high * 2 + 86400000;
+            iter++;
+        }
+        for (let i = 0; i < 70; i++) {
+            const mid = (low + high) / 2;
+            const virtMid = realToVirtual(mid);
+            if (virtMid < virtualTs) low = mid;
+            else high = mid;
+            if (high - low < 0.2) break;
+        }
+        let approx = (low + high) / 2;
+        let curVirt = realToVirtual(approx);
+        if (curVirt > virtualTs) {
+            let step = 1000;
+            for (let j = 0; j < 30 && curVirt > virtualTs; j++) {
+                approx -= step;
+                curVirt = realToVirtual(approx);
+                step = Math.max(1, step / 2);
+            }
+        } else if (curVirt < virtualTs) {
+            let step = 1000;
+            for (let j = 0; j < 30 && curVirt < virtualTs; j++) {
+                approx += step;
+                curVirt = realToVirtual(approx);
+                step = Math.max(1, step / 2);
+            }
+        }
+        let finalReal = approx;
+        if (isInDailyPause(finalReal)) {
+            finalReal = getStartOfDayUTC8(finalReal);
+        } else if (isInSpecialPause(finalReal)) {
+            finalReal = pauseStartTs;
+        }
+        return Math.max(pauseEndTs, finalReal);
+    }
+
+    // ========== 时区处理与格式化 ==========
+    // 生成 UTC-11 到 UTC+12 的选项列表（共24个）
+    function generateUTCOffsets() {
+        const offsets = [];
+        for (let i = -11; i <= 12; i++) {
+            let sign = i >= 0 ? '+' : '-';
+            let abs = Math.abs(i);
+            let label = `UTC${sign}${abs}`;
+            offsets.push({ value: i, label });
+        }
+        return offsets;
+    }
+    const utcOffsets = generateUTCOffsets();
+
+    // 填充时区下拉框
+    function populateTimezoneSelect(selectElement, defaultOffset = 0) {
+        selectElement.innerHTML = '';
+        utcOffsets.forEach(off => {
+            const option = document.createElement('option');
+            option.value = off.value;
+            option.textContent = off.label;
+            if (off.value === defaultOffset) option.selected = true;
+            selectElement.appendChild(option);
+        });
+    }
+
+    // 根据时区偏移（小时）将 UTC+0 时间戳转换为该时区的本地时间对象（返回 Date 对象）
+    function convertToTimezone(utcTimestamp, offsetHours) {
+        const offsetMs = offsetHours * 3600000;
+        const localTimestamp = utcTimestamp + offsetMs;
+        return new Date(localTimestamp);
+    }
+
+    // 格式化带毫秒的时间，支持任意时区偏移
+    function formatWithTimezone(utcTimestamp, offsetHours, showMs = true) {
+        const localDate = convertToTimezone(utcTimestamp, offsetHours);
+        const year = localDate.getUTCFullYear();
+        const month = String(localDate.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(localDate.getUTCDate()).padStart(2, '0');
+        const hour = String(localDate.getUTCHours()).padStart(2, '0');
+        const minute = String(localDate.getUTCMinutes()).padStart(2, '0');
+        const second = String(localDate.getUTCSeconds()).padStart(2, '0');
+        if (showMs) {
+            const ms = String(localDate.getUTCMilliseconds()).padStart(3, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}:${second}.${ms}`;
+        }
+        return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+    }
+
+    // 现实时间格式化（本地时区）
+    function formatRealTime(realTimestamp) {
+        const localOffset = -new Date().getTimezoneOffset() / 60;
+        return formatWithTimezone(realTimestamp, localOffset);
+    }
+
+    // 虚拟时间格式化（根据选择的偏移）
+    function formatVirtualTime(virtualUtcTimestamp, offsetHours) {
+        return formatWithTimezone(virtualUtcTimestamp, offsetHours);
+    }
+
+    // 从用户输入的 datetime-local 和虚拟时区偏移解析 UTC+0 时间戳
+    function parseVirtualInputWithTz(dateTimeLocalValue, offsetHours) {
+        // datetime-local 格式: "YYYY-MM-DDTHH:mm"
+        const dateTimeStr = dateTimeLocalValue.replace('T', ' ') + ':00';
+        const sign = offsetHours >= 0 ? '+' : '-';
+        const absOffset = Math.abs(offsetHours);
+        const offsetStr = `${sign}${String(absOffset).padStart(2,'0')}:00`;
+        const fullStr = `${dateTimeStr} ${offsetStr}`;
+        const parsed = new Date(fullStr);
+        if (isNaN(parsed.getTime())) throw new Error('无效时间');
+        return parsed.getTime();
+    }
+
+    // ========== 实时更新 ==========
+    let virtualTzSelect, virtualInputTzSelect;
+    let liveRealSpan, liveVirtualSpan;
+
+    function updateLiveClock() {
+        const nowAbs = Date.now();
+        liveRealSpan.innerText = formatRealTime(nowAbs);
+        
+        const virtualUtc = realToVirtual(nowAbs);
+        const virtualOffset = parseInt(virtualTzSelect.value, 10);
+        liveVirtualSpan.innerText = formatVirtualTime(virtualUtc, virtualOffset);
+    }
+
+    // ========== 面板1 现实→虚拟 ==========
+    const realInputTab1 = document.getElementById('realInputTab1');
+    const toVirtualBtn = document.getElementById('toVirtualBtn');
+    const nowFillBtn = document.getElementById('nowFillBtn');
+    const errorTab1 = document.getElementById('errorTab1');
+    const displayRealTab1 = document.getElementById('displayRealTab1');
+    const displayVirtualTab1 = document.getElementById('displayVirtualTab1');
+    const ruleStatusTab1 = document.getElementById('ruleStatusTab1');
+
+    function updateFromRealInput() {
+        errorTab1.style.display = 'none';
+        const val = realInputTab1.value;
+        if (!val) {
+            displayRealTab1.innerText = '—';
+            displayVirtualTab1.innerText = '—';
+            ruleStatusTab1.innerText = '—';
+            return;
+        }
+        try {
+            // 输入视为 UTC+8
+            const realFull = val.replace('T', ' ') + ':00+08:00';
+            const realTs = new Date(realFull).getTime();
+            if (isNaN(realTs)) throw new Error('无效时间');
+            const virtualTs = realToVirtual(realTs);
+            const virtualOffset = parseInt(virtualTzSelect.value, 10);
+            displayRealTab1.innerText = formatRealTime(realTs);
+            displayVirtualTab1.innerText = formatVirtualTime(virtualTs, virtualOffset);
+            ruleStatusTab1.innerText = getRuleDescription(realTs);
+        } catch (err) {
+            errorTab1.style.display = 'block';
+            errorTab1.innerText = `❌ ${err.message}`;
+        }
+    }
+
+    toVirtualBtn.addEventListener('click', updateFromRealInput);
+    nowFillBtn.addEventListener('click', () => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2,'0');
+        const day = String(now.getDate()).padStart(2,'0');
+        const hour = String(now.getHours()).padStart(2,'0');
+        const minute = String(now.getMinutes()).padStart(2,'0');
+        realInputTab1.value = `${year}-${month}-${day}T${hour}:${minute}`;
+        updateFromRealInput();
+    });
+
+    // ========== 面板2 虚拟→现实 ==========
+    const virtualInputTab2 = document.getElementById('virtualInputTab2');
+    const toRealBtn = document.getElementById('toRealBtn');
+    const exampleBtn = document.getElementById('exampleBtn');
+    const errorTab2 = document.getElementById('errorTab2');
+    const displayVirtualTab2 = document.getElementById('displayVirtualTab2');
+    const displayRealTab2 = document.getElementById('displayRealTab2');
+    const ruleStatusTab2 = document.getElementById('ruleStatusTab2');
+
+    function updateFromVirtualInput() {
+        errorTab2.style.display = 'none';
+        const val = virtualInputTab2.value;
+        if (!val) {
+            displayVirtualTab2.innerText = '—';
+            displayRealTab2.innerText = '—';
+            ruleStatusTab2.innerText = '—';
+            return;
+        }
+        try {
+            const virtualOffset = parseInt(virtualInputTzSelect.value, 10);
+            const virtualUtc = parseVirtualInputWithTz(val, virtualOffset);
+            if (isNaN(virtualUtc)) throw new Error('无效虚拟时间');
+            const realTs = virtualToReal(virtualUtc);
+            const displayOffset = parseInt(virtualTzSelect.value, 10); // 显示用虚拟时区
+            displayVirtualTab2.innerText = formatVirtualTime(virtualUtc, displayOffset);
+            displayRealTab2.innerText = formatRealTime(realTs);
+            ruleStatusTab2.innerText = getRuleDescription(realTs);
+        } catch (err) {
+            errorTab2.style.display = 'block';
+            errorTab2.innerText = `❌ ${err.message}`;
+        }
+    }
+
+    toRealBtn.addEventListener('click', updateFromVirtualInput);
+    exampleBtn.addEventListener('click', () => {
+        virtualInputTab2.value = "1710-10-15T23:59";
+        updateFromVirtualInput();
+    });
+
+    // ========== 初始化 ==========
+    virtualTzSelect = document.getElementById('virtualTzSelect');
+    virtualInputTzSelect = document.getElementById('virtualInputTz');
+    liveRealSpan = document.getElementById('liveRealFormatted');
+    liveVirtualSpan = document.getElementById('liveVirtual');
+
+    populateTimezoneSelect(virtualTzSelect, 0);
+    populateTimezoneSelect(virtualInputTzSelect, 0);
+    
+    // 监听虚拟时区变化
+    virtualTzSelect.addEventListener('change', () => {
+        updateLiveClock();
+        if (document.getElementById('tab1').classList.contains('active')) updateFromRealInput();
+        else updateFromVirtualInput();
+    });
+    virtualInputTzSelect.addEventListener('change', () => {
+        if (document.getElementById('tab2').classList.contains('active')) updateFromVirtualInput();
+    });
+
+    // 启动实时刷新 (80ms)
+    setInterval(updateLiveClock, 80);
+    updateLiveClock();
+    nowFillBtn.click();
+</script>
+</body>
+</html>
